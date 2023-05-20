@@ -2,25 +2,29 @@ import pygame
 from sys import exit
 from random import randint
 
+#displays the score
 def display_score():
     current_time = (pygame.time.get_ticks() - start_time) // 100
-    score_surf = mainfont.render(f'Score: {current_time}', False, (64, 64, 64))
+    score_surf = mainfont.render(f'Score: {current_time}', False, 'White')
     score_rect = score_surf.get_rect(topright = (1230,50))
     screen.blit(score_surf, score_rect)
     return current_time
 
+#sets the asteroids moving across the screen
 def obstacle_movement(obstacle_rect_list):
     if obstacle_rect_list:
         for obstacle_rect in obstacle_rect_list:
             obstacle_rect.x -= 5
             screen.blit(asteroid_surf,obstacle_rect)
 
+        #remove obstacles that are too far left
         obstacle_rect_list = [obstacle for obstacle in obstacle_rect_list if obstacle.right > 0]
 
         return obstacle_rect_list
     else:
         return []
 
+#runs through each obstacle and checks collision
 def collisions(spaceship,obstacles):
     if obstacles:
         for obstacle_rect in obstacles:
@@ -40,14 +44,11 @@ score = 0
 
 bg_surf = pygame.image.load('graphics/background.png').convert()
 
+#spaceship
 spaceship_surf = pygame.image.load('graphics/spaceship.png').convert_alpha()
 spaceship_surf = pygame.transform.rotozoom(spaceship_surf,0,0.5)
 spaceship_rect = spaceship_surf.get_rect(midleft=(200, 400))
 player_gravity = 0
-
-
-#score_surf = mainfont.render('Score:', True, 'Black')
-# = score_surf.get_rect(topright = (1230,50))
 
 #obstacles
 asteroid_surf = pygame.image.load('graphics/asteroid.png').convert_alpha()
@@ -67,6 +68,7 @@ score_surf = mainfont.render('High Score:',False,(64,64,64))
 obstacle_timer = pygame.USEREVENT + 1
 pygame.time.set_timer(obstacle_timer,1500)
 
+#main loop
 while True:
     #event loop
     for event in pygame.event.get():
@@ -83,12 +85,11 @@ while True:
         if event.type == obstacle_timer:
             obstacle_rect_list.append(asteroid_surf.get_rect(center = (randint(1400,1600),randint(20,700))))
 
+    #actual game
     if game_active:
         screen.blit(bg_surf, (0, 0))
         falling = True
         score = display_score()
-
-
 
         # gravity
         if pygame.key.get_pressed()[pygame.K_SPACE]:
@@ -119,15 +120,16 @@ while True:
 
         game_active = collisions(spaceship_rect,obstacle_rect_list)
 
+    #home screen
     else:
-        screen.fill('Blue')
+        screen.fill('#8662a1')
         screen.blit(spaceship_title,spaceship_title_rect)
         screen.blit(title_surf,title_rect)
         obstacle_rect_list.clear()
         spaceship_rect.midleft = (200, 400)
         player_gravity = 0
 
-        score_message = mainfont.render(f'Your score: {score}', False, (111, 196, 169))
+        score_message = mainfont.render(f'Your score: {score}', False, 'Gray')
         score_message_rect = score_message.get_rect(center=(640, 600))
 
         if score == 0:
