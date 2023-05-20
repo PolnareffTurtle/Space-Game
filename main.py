@@ -1,5 +1,6 @@
 import pygame
 from sys import exit
+from random import randint
 
 def display_score():
     current_time = (pygame.time.get_ticks() - start_time) // 100
@@ -8,8 +9,28 @@ def display_score():
     screen.blit(score_surf, score_rect)
     return current_time
 
+def obstacle_movement(obstacle_rect_list):
+    if obstacle_rect_list:
+        for obstacle_rect in obstacle_rect_list:
+            obstacle_rect.x -= 5
+            screen.blit(asteroid_surf,obstacle_rect)
+
+        obstacle_rect_list = [obstacle for obstacle in obstacle_rect_list if obstacle.right > 0]
+
+        return obstacle_rect_list
+    else:
+        return []
+
+def collisions(spaceship,obstacles):
+    if obstacles:
+        for obstacle_rect in obstacles:
+            if obstacle_rect.colliderect(spaceship):
+                return False
+    return True
+
 pygame.init()
 screen = pygame.display.set_mode((1280,720))
+pygame.display.set_caption('Space Game')
 clock = pygame.time.Clock()
 mainfont = pygame.font.Font(None, 50)
 titlefont = pygame.font.Font(None,100)
@@ -20,6 +41,7 @@ score = 0
 bg_surf = pygame.image.load('graphics/background.png').convert()
 
 spaceship_surf = pygame.image.load('graphics/spaceship.png').convert_alpha()
+spaceship_surf = pygame.transform.rotozoom(spaceship_surf,0,0.5)
 spaceship_rect = spaceship_surf.get_rect(midleft=(200, 400))
 player_gravity = 0
 
@@ -30,6 +52,7 @@ player_gravity = 0
 #obstacles
 asteroid_surf = pygame.image.load('graphics/asteroid.png').convert_alpha()
 asteroid_rect = asteroid_surf.get_rect(midleft = (1280,400))
+obstacle_rect_list = []
 
 #intro screen
 spaceship_title = pygame.transform.rotozoom(spaceship_surf,30,2)
@@ -39,6 +62,10 @@ title_rect = title_surf.get_rect(center = (640,100))
 instruction_surf = mainfont.render('Press Space to start',True,'Gray')
 instruction_rect = instruction_surf.get_rect(center = (640,600))
 score_surf = mainfont.render('High Score:',False,(64,64,64))
+
+#Timer
+obstacle_timer = pygame.USEREVENT + 1
+pygame.time.set_timer(obstacle_timer,1500)
 
 while True:
     #event loop
@@ -53,6 +80,8 @@ while True:
                 asteroid_rect.left = 1280
                 game_active = True
                 start_time = pygame.time.get_ticks()
+        if event.type == obstacle_timer:
+            obstacle_rect_list.append(asteroid_surf.get_rect(center = (randint(1400,1600),randint(20,700))))
 
     if game_active:
         screen.blit(bg_surf, (0, 0))
@@ -82,21 +111,21 @@ while True:
             spaceship_rect.top = 20
             player_gravity = 0
         spaceship_rect.y += player_gravity
-        screen.blit(spaceship_surf, spaceship_rect)
+        spaceship_surf_rotated = pygame.transform.rotozoom(spaceship_surf,-player_gravity,1)
+        screen.blit(spaceship_surf_rotated, spaceship_rect)
 
         # obstacles
-        asteroid_rect.x += -4
-        if asteroid_rect.right < 0:
-            asteroid_rect.left = 1280
-        screen.blit(asteroid_surf, asteroid_rect)
+        obstacle_rect_list = obstacle_movement(obstacle_rect_list)
 
-        if asteroid_rect.colliderect(spaceship_rect):
-            game_active = False
+        game_active = collisions(spaceship_rect,obstacle_rect_list)
 
     else:
         screen.fill('Blue')
         screen.blit(spaceship_title,spaceship_title_rect)
         screen.blit(title_surf,title_rect)
+        obstacle_rect_list.clear()
+        spaceship_rect.midleft = (200, 400)
+        player_gravity = 0
 
         score_message = mainfont.render(f'Your score: {score}', False, (111, 196, 169))
         score_message_rect = score_message.get_rect(center=(640, 600))
