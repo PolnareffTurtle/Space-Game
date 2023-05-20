@@ -1,8 +1,54 @@
 import pygame
 from sys import exit
-from random import randint
+from random import randint, choice
 
-#displays the score
+pygame.init()
+screen = pygame.display.set_mode((1280,720))
+spaceship = pygame.transform.rotozoom(pygame.image.load('graphics/spaceship.png').convert_alpha(),0,0.5)
+
+class Player(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = spaceship
+        self.rect = self.image.get_rect(midleft = (200,400))
+        self.gravity = 0
+        self.falling = True
+
+    def player_input(self):
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_SPACE]:
+            self.gravity += -0.6
+        else:
+            self.gravity += 0.5
+
+    def apply_gravity(self):
+        #max and min for gravity
+        if self.gravity > 10: self.gravity = 10
+        if self.gravity < -10: self.gravity = -10
+        self.rect.y += self.gravity
+        #max and min for position
+        if self.rect.top < 20: self.rect.top,self.gravity = 20,0
+        if self.rect.bottom > 700: self.rect.bottom,self.gravity = 700,0
+        self.image = pygame.transform.rotozoom(spaceship,-self.gravity,1)
+
+    def update(self):
+        self.player_input()
+        self.apply_gravity()
+
+class Obstacle(pygame.sprite.Sprite):
+    def __init__(self): #TODO: create different types for the obstacles --> def __init__(self,type)
+        super().__init__()
+        self.image = pygame.image.load('graphics/asteroid.png').convert_alpha()
+        self.image = pygame.transform.rotozoom(self.image,0,0.4)
+        self.rect = self.image.get_rect(midleft = (randint(1300,1500),randint(20,700)))
+
+    def destroy(self):
+        if self.rect.right < 0:
+            self.kill()
+    def update(self):
+        self.rect.x += -4
+        self.destroy()
+
 def display_score():
     current_time = (pygame.time.get_ticks() - start_time) // 100
     score_surf = mainfont.render(f'Score: {current_time}', False, 'White')
@@ -10,30 +56,13 @@ def display_score():
     screen.blit(score_surf, score_rect)
     return current_time
 
-#sets the asteroids moving across the screen
-def obstacle_movement(obstacle_rect_list):
-    if obstacle_rect_list:
-        for obstacle_rect in obstacle_rect_list:
-            obstacle_rect.x -= 5
-            screen.blit(asteroid_surf,obstacle_rect)
-
-        #remove obstacles that are too far left
-        obstacle_rect_list = [obstacle for obstacle in obstacle_rect_list if obstacle.right > 0]
-
-        return obstacle_rect_list
-    else:
-        return []
-
-#runs through each obstacle and checks collision
-def collisions(spaceship,obstacles):
-    if obstacles:
-        for obstacle_rect in obstacles:
-            if obstacle_rect.colliderect(spaceship):
-                return False
+def collisions():
+    if pygame.sprite.spritecollide(player.sprite,obstacles,False):
+        obstacles.empty()
+        return False
     return True
 
-pygame.init()
-screen = pygame.display.set_mode((1280,720))
+
 pygame.display.set_caption('Space Game')
 clock = pygame.time.Clock()
 mainfont = pygame.font.Font(None, 50)
@@ -42,21 +71,17 @@ game_active = False
 start_time = 0
 score = 0
 
+#background
 bg_surf = pygame.image.load('graphics/background.png').convert()
 
-#spaceship
-spaceship_surf = pygame.image.load('graphics/spaceship.png').convert_alpha()
-spaceship_surf = pygame.transform.rotozoom(spaceship_surf,0,0.5)
-spaceship_rect = spaceship_surf.get_rect(midleft=(200, 400))
-player_gravity = 0
+#--------------------------GROUPS-------------------------------------
+player = pygame.sprite.GroupSingle()
+player.add(Player())
 
-#obstacles
-asteroid_surf = pygame.image.load('graphics/asteroid.png').convert_alpha()
-asteroid_rect = asteroid_surf.get_rect(midleft = (1280,400))
-obstacle_rect_list = []
+obstacles = pygame.sprite.Group()
 
-#intro screen
-spaceship_title = pygame.transform.rotozoom(spaceship_surf,30,2)
+#-----------------------------intro screen---------------------------------
+spaceship_title = pygame.transform.rotozoom(player.sprite.image,30,2)
 spaceship_title_rect = spaceship_title.get_rect(center = (640,400))
 title_surf = titlefont.render('Spaceship Game',True,'Gray')
 title_rect = title_surf.get_rect(center = (640,100))
@@ -64,7 +89,7 @@ instruction_surf = mainfont.render('Press Space to start',True,'Gray')
 instruction_rect = instruction_surf.get_rect(center = (640,600))
 score_surf = mainfont.render('High Score:',False,(64,64,64))
 
-#Timer
+#-------------------------------Timer---------------------------------------
 obstacle_timer = pygame.USEREVENT + 1
 pygame.time.set_timer(obstacle_timer,1500)
 
@@ -76,14 +101,13 @@ while True:
             pygame.quit()
             exit()
         if game_active:
-            pass
+            if event.type == obstacle_timer:
+                obstacles.add(Obstacle())
         else:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
-                asteroid_rect.left = 1280
                 game_active = True
                 start_time = pygame.time.get_ticks()
-        if event.type == obstacle_timer:
-            obstacle_rect_list.append(asteroid_surf.get_rect(center = (randint(1400,1600),randint(20,700))))
+
 
     #actual game
     if game_active:
@@ -91,56 +115,28 @@ while True:
         falling = True
         score = display_score()
 
-        # gravity
-        if pygame.key.get_pressed()[pygame.K_SPACE]:
-            falling = False
-        if falling:
-            player_gravity += 0.5
-        else:
-            player_gravity += -0.6
-        if player_gravity > 10:
-            player_gravity = 10
-        if player_gravity < -10:
-            player_gravity = -10
-        spaceship_rect.y += player_gravity
+        player.draw(screen)
+        player.update()
 
-        # max and min y-value for spaceship
-        if spaceship_rect.bottom > 700:
-            spaceship_rect.bottom = 700
-            player_gravity = 0
-        if spaceship_rect.top < 20:
-            spaceship_rect.top = 20
-            player_gravity = 0
-        spaceship_rect.y += player_gravity
-        spaceship_surf_rotated = pygame.transform.rotozoom(spaceship_surf,-player_gravity,1)
-        screen.blit(spaceship_surf_rotated, spaceship_rect)
+        obstacles.draw(screen)
+        obstacles.update()
 
-        # obstacles
-        obstacle_rect_list = obstacle_movement(obstacle_rect_list)
+        game_active = collisions()
 
-        game_active = collisions(spaceship_rect,obstacle_rect_list)
-
-    #home screen
+    #----------------------------home screen-------------------------------------
     else:
         screen.fill('#8662a1')
         screen.blit(spaceship_title,spaceship_title_rect)
         screen.blit(title_surf,title_rect)
-        obstacle_rect_list.clear()
-        spaceship_rect.midleft = (200, 400)
-        player_gravity = 0
+        player.sprite.gravity = 0
+        player.sprite.rect.midleft = (200, 400)
 
+        #-----------------------score--------------------------------------------
         score_message = mainfont.render(f'Your score: {score}', False, 'Gray')
         score_message_rect = score_message.get_rect(center=(640, 600))
 
-        if score == 0:
-            screen.blit(instruction_surf,instruction_rect)
-        else:
-            screen.blit(score_message, score_message_rect)
-
-        if score == 0:
-            screen.blit(instruction_surf, instruction_rect)
-        else:
-            screen.blit(score_message, score_message_rect)
+        if score == 0: screen.blit(instruction_surf,instruction_rect)
+        else: screen.blit(score_message, score_message_rect)
 
 
     pygame.display.update()
