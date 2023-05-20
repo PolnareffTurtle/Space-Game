@@ -13,8 +13,9 @@ screen = pygame.display.set_mode((1280,720))
 clock = pygame.time.Clock()
 mainfont = pygame.font.Font(None, 50)
 titlefont = pygame.font.Font(None,100)
-game_active = True
+game_active = False
 start_time = 0
+score = 0
 
 bg_surf = pygame.image.load('graphics/background.png').convert()
 
