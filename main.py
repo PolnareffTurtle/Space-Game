@@ -1,12 +1,21 @@
 import pygame
 from sys import exit
 
+def display_score():
+    current_time = (pygame.time.get_ticks() - start_time) // 100
+    score_surf = mainfont.render(f'Score: {current_time}', False, (64, 64, 64))
+    score_rect = score_surf.get_rect(topright = (1230,50))
+    screen.blit(score_surf, score_rect)
+    return current_time
+
 pygame.init()
 screen = pygame.display.set_mode((1280,720))
 clock = pygame.time.Clock()
 mainfont = pygame.font.Font(None, 50)
 titlefont = pygame.font.Font(None,100)
-game_active = True
+game_active = False
+start_time = 0
+score = 0
 
 bg_surf = pygame.image.load('graphics/background.png').convert()
 
@@ -15,8 +24,8 @@ spaceship_rect = spaceship_surf.get_rect(midleft=(200, 400))
 player_gravity = 0
 
 
-score_surf = mainfont.render('Score:', True, 'Black')
-score_rect = score_surf.get_rect(topright = (1230,50))
+#score_surf = mainfont.render('Score:', True, 'Black')
+# = score_surf.get_rect(topright = (1230,50))
 
 #obstacles
 asteroid_surf = pygame.image.load('graphics/asteroid.png').convert_alpha()
@@ -29,6 +38,7 @@ title_surf = titlefont.render('Spaceship Game',True,'Gray')
 title_rect = title_surf.get_rect(center = (640,100))
 instruction_surf = mainfont.render('Press Space to start',True,'Gray')
 instruction_rect = instruction_surf.get_rect(center = (640,600))
+score_surf = mainfont.render('High Score:',False,(64,64,64))
 
 while True:
     #event loop
@@ -42,11 +52,12 @@ while True:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE:
                 asteroid_rect.left = 1280
                 game_active = True
+                start_time = pygame.time.get_ticks()
 
     if game_active:
         screen.blit(bg_surf, (0, 0))
-        screen.blit(score_surf, score_rect)
         falling = True
+        score = display_score()
 
 
 
@@ -86,7 +97,19 @@ while True:
         screen.fill('Blue')
         screen.blit(spaceship_title,spaceship_title_rect)
         screen.blit(title_surf,title_rect)
-        screen.blit(instruction_surf,instruction_rect)
+
+        score_message = mainfont.render(f'Your score: {score}', False, (111, 196, 169))
+        score_message_rect = score_message.get_rect(center=(640, 600))
+
+        if score == 0:
+            screen.blit(instruction_surf,instruction_rect)
+        else:
+            screen.blit(score_message, score_message_rect)
+
+        if score == 0:
+            screen.blit(instruction_surf, instruction_rect)
+        else:
+            screen.blit(score_message, score_message_rect)
 
 
     pygame.display.update()
