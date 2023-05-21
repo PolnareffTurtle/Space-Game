@@ -2,6 +2,7 @@ import pygame
 from sys import exit
 from random import randint, choice
 from savedata import *
+import math
 
 pygame.init()
 screen = pygame.display.set_mode((1280,720))
@@ -47,8 +48,19 @@ class Obstacle(pygame.sprite.Sprite):
         if self.rect.right < 0:
             self.kill()
     def update(self):
-        self.rect.x += -4
+        self.rect.x -= 4
         self.destroy()
+
+class Coin(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.image.load('graphics/coin.png').convert_alpha()
+        self.image = pygame.transform.rotozoom(self.image,0,0.4)
+        self.rect = self.image.get_rect(midleft = (randint(1300, 1500), randint(20, 700)))
+
+        def destroy(self):
+            self.rect.x -= 4
+            self.destroy()
 
 def display_score():
     current_time = (pygame.time.get_ticks() - start_time) // 100
@@ -62,6 +74,8 @@ def collisions():
         obstacles.empty()
         return False
     return True
+
+
 
 #-------------------SAVE DATA----------------------
 
@@ -81,6 +95,7 @@ player = pygame.sprite.GroupSingle()
 player.add(Player())
 
 obstacles = pygame.sprite.Group()
+coins = pygame.sprite.Group()
 
 #-----------------------------intro screen---------------------------------
 spaceship_title = pygame.transform.rotozoom(player.sprite.image,30,2)
