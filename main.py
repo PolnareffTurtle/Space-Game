@@ -42,10 +42,11 @@ class Obstacle(pygame.sprite.Sprite):
         super().__init__()
         self.type = type
         if self.type == 'asteroid':
+            self.size = uniform(0.3,0.5)
             self.speed = randint(2+int(game_time_index),4+int(game_time_index))
             self.angle = uniform(-2,2)
             self.image = pygame.image.load(f'graphics/asteroid/asteroid{randint(1,10)}.png').convert_alpha()
-            self.image = pygame.transform.rotozoom(self.image,0,0.4)
+            self.image = pygame.transform.rotozoom(self.image,0,self.size)
             self.rect = self.image.get_rect(midleft = (randint(1300,1500),randint(20,700)))
             self.radius = 0.8 * self.rect.height/2
 
@@ -108,10 +109,14 @@ obstacles = pygame.sprite.Group()
 #-----------------------------intro screen---------------------------------
 spaceship_title = pygame.transform.rotozoom(player.sprite.image,30,2)
 spaceship_title_rect = spaceship_title.get_rect(center = (640,300))
-title_surf = titlefont.render('Spaceship Game',True,'Gray')
+title_surf = titlefont.render('Spaceship Game',True,'White')
 title_rect = title_surf.get_rect(center = (640,100))
-instruction_surf = mainfont.render('Press R to start',True,'Gray')
+title_surf2 = titlefont.render('You Crashed!',True,'White')
+title_rect2 = title_surf2.get_rect(center = (640,100))
+instruction_surf = mainfont.render('Play [r]',True,'White')
 instruction_rect = instruction_surf.get_rect(center = (640,500))
+instruction_surf2 = mainfont.render('Play Again [r]', True, 'White')
+instruction_rect2 = instruction_surf2.get_rect(center = (640, 500))
 
 #-------------------------------Timer---------------------------------------
 obstacle_timer = pygame.USEREVENT + 1
@@ -137,7 +142,6 @@ while True:
 
                 if pygame.time.get_ticks()-meteor_start < 5000:
                     if event.type == obstacle_timer:
-                        print('hihihi')
                         obstacles.add(Obstacle('comet'))
                         obstacles.add(Obstacle('comet'))
                 else:
@@ -148,9 +152,14 @@ while True:
                 if event.type == meteor_shower:
                     meteor_start = pygame.time.get_ticks()
                     meteor_shower_on = True
-
+        elif score > 0:
+            if event.type == pygame.MOUSEBUTTONDOWN and instruction_rect2.collidepoint(pygame.mouse.get_pos()) or event.type == pygame.KEYDOWN and event.key == pygame.K_r:
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+                game_active = True
+                start_time = pygame.time.get_ticks()
         else:
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
+            if event.type == pygame.MOUSEBUTTONDOWN and instruction_rect.collidepoint(pygame.mouse.get_pos()) or event.type == pygame.KEYDOWN and event.key == pygame.K_r:
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
                 game_active = True
                 start_time = pygame.time.get_ticks()
 
@@ -180,38 +189,50 @@ while True:
 
     #----------------------------home screen-------------------------------------
     else:
-        #background
-        if bg_index <=1280: screen.blit(bg1,(-bg_index, 0))
-        else: screen.blit(bg1,(2560-bg_index,0))
+        # background
+        if bg_index <= 1280: screen.blit(bg1, (-bg_index, 0))
+        else: screen.blit(bg1, (2560 - bg_index, 0))
         screen.blit(bg2, (1280 - bg_index, 0))
         bg_index += 1
-        bg_index = bg_index%2560
+        bg_index = bg_index % 2560
 
-        screen.blit(spaceship_title,spaceship_title_rect)
-        screen.blit(title_surf,title_rect)
+        screen.blit(spaceship_title, spaceship_title_rect)
 
-        game_time_index=0
+        game_time_index = 0
         player.sprite.gravity = 0
         player.sprite.rect.midleft = (200, 400)
-
         #-----------------------score--------------------------------------------
         if score == 0:
+            screen.blit(title_surf,title_rect)
+
             if highscore > 0:
-                highscore_message = mainfont.render(f'Highscore: {highscore}', True, 'Gray')
+                highscore_message = mainfont.render(f'Highscore: {highscore}', True, 'White')
                 highscore_rect = highscore_message.get_rect(center=(640, 650))
                 screen.blit(highscore_message,highscore_rect)
+            pygame.draw.rect(screen, 'Red', instruction_rect)
+            pygame.draw.rect(screen, 'Red', instruction_rect, 10)
             screen.blit(instruction_surf,instruction_rect)
+
+            if(instruction_rect.collidepoint(pygame.mouse.get_pos())):
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+            else: pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
         else:
+            screen.blit(title_surf2,title_rect2)
             if score > highscore:
                 highscore = score
                 f = open('savedata.py','w')
                 f.write('highscore = '+str(highscore)+'\n')
                 f.close()
-            score_message = mainfont.render(f'Your score: {score}', True, 'Gray')
+            score_message = mainfont.render(f'Your score: {score}', True, 'White')
             score_rect = score_message.get_rect(center=(640, 600))
-            highscore_message = mainfont.render(f'Highscore: {highscore}',True,'Gray')
+            highscore_message = mainfont.render(f'Highscore: {highscore}',True,'White')
             highscore_rect = highscore_message.get_rect(center = (640,650))
-            screen.blit(instruction_surf,instruction_rect)
+            pygame.draw.rect(screen, 'Red', instruction_rect2)
+            pygame.draw.rect(screen, 'Red', instruction_rect2, 10)
+            screen.blit(instruction_surf2,instruction_rect2)
+            if(instruction_rect2.collidepoint(pygame.mouse.get_pos())):
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+            else: pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
             screen.blit(score_message, score_rect)
             screen.blit(highscore_message,highscore_rect)
 
