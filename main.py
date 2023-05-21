@@ -2,7 +2,6 @@ import pygame
 from sys import exit
 from random import randint, choice, uniform
 from savedata import *
-import csv
 
 pygame.init()
 screen = pygame.display.set_mode((1280,720))
