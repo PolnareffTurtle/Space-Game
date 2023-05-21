@@ -2,6 +2,7 @@ import pygame
 from sys import exit
 from random import randint, choice, uniform
 from savedata import *
+import csv
 
 pygame.init()
 screen = pygame.display.set_mode((1280,720))
@@ -58,16 +59,27 @@ class Obstacle(pygame.sprite.Sprite):
 
         elif self.type == 'comet':
             self.speed = randint(5+int(game_time_index),7+int(game_time_index))
-            self.image = pygame.image.load('graphics/comet.png').convert_alpha()
+            self.image = pygame.image.load(f'graphics/comet.png').convert_alpha()
             self.image = pygame.transform.rotozoom(self.image,30,1)
             self.rect = self.image.get_rect(bottomleft = (randint(900,2400),randint(-200,-100)))
             self.radius = 50
+
+        elif self.type == 'doge':
+            self.speed = randint(5 + int(game_time_index), 7 + int(game_time_index))
+            self.image = pygame.image.load(f'graphics/image-removebg-preview.png').convert_alpha()
+            self.image = pygame.transform.rotozoom(self.image, 30, 1)
+            self.rect = self.image.get_rect(bottomleft=(randint(900, 2400), randint(-200, -100)))
+            self.radius = 50
+
     def destroy(self):
         if self.rect.right < 0 or self.rect.top > 720 or (self.rect.bottom < 0 and self.type == 'asteroid'):
             self.kill()
 
     def update(self):
         if self.type == 'comet':
+            self.rect.x += -2*self.speed
+            self.rect.y += self.speed
+        elif self.type == 'doge':
             self.rect.x += -2*self.speed
             self.rect.y += self.speed
         elif self.type == 'asteroid':
@@ -78,11 +90,44 @@ class Obstacle(pygame.sprite.Sprite):
             #self.image = self.frames[int(self.index)%180]
         self.destroy()
 
+class Text(pygame.sprite.Sprite):
+    def __init__(self,text,size,color,xpos,ypos,hover,key=None):
+        self.key = key
+        self.text = text
+        self.color = color
+        self.hover = hover
+        self.center = (xpos,ypos)
+        self.font = pygame.font.Font(None,size)
+        self.font2 = pygame.font.Font(None,int(size*1.5))
+        self.image = self.font.render(text,True,color)
+        self.rect = self.image.get_rect(center=self.center)
+
+    def text_hover(self):
+        if self.rect.collidepoint(pygame.mouse.get_pos()):
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+            self.image = self.font2.render(self.text,True,self.color)
+            self.rect = self.image.get_rect(center=self.center)
+        else:
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+            self.image = self.font.render(self.text,True,self.color)
+            self.rect = self.image.get_rect(center=self.center)
+
+    def clicked(self,key=None):
+        mousedown = pygame.mouse.get_pressed()[0]
+        keydown = pygame.key.get_pressed()[key]
+        if self.rect.collidepoint(pygame.mouse.get_pos()) and mousedown or keydown:
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+            return True
+
+    def text_blit(self):
+        if self.hover:
+            self.text_hover()
+        screen.blit(self.image,self.rect)
+
 def display_score():
     current_time = int(((pygame.time.get_ticks() - start_time) // 100)*(1+game_time_index))
-    score_surf = mainfont.render(f'Score: {current_time}', True, 'White')
-    score_rect = score_surf.get_rect(topright = (1230,50))
-    screen.blit(score_surf, score_rect)
+    score_text = Text(f'Score: {current_time}',50,'White',1100,80,False)
+    score_text.text_blit()
     return current_time
 
 def collisions():
@@ -114,16 +159,14 @@ player.add(Player())
 obstacles = pygame.sprite.Group()
 
 #-----------------------------intro screen---------------------------------
+
 spaceship_title = pygame.transform.rotozoom(player.sprite.image,30,2)
 spaceship_title_rect = spaceship_title.get_rect(center = (640,300))
-title_surf = titlefont.render('Spaceship Game',True,'White')
-title_rect = title_surf.get_rect(center = (640,100))
-title_surf2 = titlefont.render('You Crashed!',True,'White')
-title_rect2 = title_surf2.get_rect(center = (640,100))
-instruction_surf = mainfont.render('Play [r]',True,'Yellow')
-instruction_rect = instruction_surf.get_rect(center = (640,500))
-instruction_surf2 = mainfont.render('Play Again [r]', True, 'Yellow')
-instruction_rect2 = instruction_surf2.get_rect(center = (640, 500))
+
+title1 = Text('Spaceship Game',100,'White',640,100,False)
+title2 = Text('You Crashed!',100,'White',640,100,False)
+instruction1 = Text('Play [r]',50,'Yellow',640,500,True,pygame.K_r)
+instruction2 = Text('Play Again [r]',50,'Yellow',640,500,True,pygame.K_r)
 
 #-------------------------------Timer---------------------------------------
 obstacle_timer = pygame.USEREVENT + 1
@@ -133,9 +176,13 @@ pygame.time.set_timer(obstacle_timer,1500)
 meteor_shower = pygame.USEREVENT + 2
 pygame.time.set_timer(meteor_shower,40000)
 meteor_start = 0
-meteor_shower_surf = titlefont.render('METEOR SHOWER',True,'#ff4576')
-meteor_shower_rect = meteor_shower_surf.get_rect(center=(640,300))
+meteor_shower_text = Text('METEOR SHOWER',100,'#ff4576',640,300,False)
 
+#character select
+triangle_l_surf = pygame.image.load('graphics/triangle_l.png').convert_alpha()
+triangle_l_rect = triangle_l_surf.get_rect(midright = (500,300))
+triangle_r_surf = pygame.image.load('graphics/triangle_r.png').convert_alpha()
+triangle_r_rect = triangle_r_surf.get_rect(midleft = (780,300))
 
 #main loop
 while True:
@@ -149,36 +196,26 @@ while True:
 
                 if pygame.time.get_ticks()-meteor_start < 5000:
                     if event.type == obstacle_timer:
-                        obstacles.add(Obstacle('comet'))
-                        obstacles.add(Obstacle('comet'))
+                        if randint(1, 50) == 1:
+                            obstacles.add(Obstacle('doge'))
+                            obstacles.add(Obstacle('doge'))
+                        else:
+                            obstacles.add(Obstacle('comet'))
+                            obstacles.add(Obstacle('comet'))
                 else:
                     meteor_shower_on = False
             else:
                 if event.type == obstacle_timer:
-                    obstacles.add(Obstacle(choice(['comet','asteroid','asteroid','asteroid'])))
+                    if randint(1, 50) == 1:
+                        obstacles.add(Obstacle(choice(['doge'])))
+                    else:
+                        obstacles.add(Obstacle(choice(['comet', 'asteroid', 'asteroid', 'asteroid'])))
                 if event.type == meteor_shower:
                     meteor_start = pygame.time.get_ticks()
                     meteor_shower_on = True
-        else:
-            if instruction_rect2.collidepoint(pygame.mouse.get_pos()) or instruction_rect.collidepoint(pygame.mouse.get_pos()):
-                instruction_surf2 = biggerfont.render('Play Again [r]', True, 'Yellow')
-                instruction_rect2 = instruction_surf2.get_rect(center = (640,500))
-                instruction_surf = biggerfont.render('Play [r]', True, 'Yellow')
-                instruction_rect = instruction_surf.get_rect(center=(640, 500))
-                if event.type == pygame.MOUSEBUTTONDOWN:# or event.type == pygame.KEYDOWN and event.key == pygame.K_r
-                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
-                    game_active = True
-                    start_time = pygame.time.get_ticks()
-            elif event.type == pygame.KEYDOWN and event.key == pygame.K_r:
-                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
-                game_active = True
-                start_time = pygame.time.get_ticks()
-            else:
-                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
-                instruction_surf = mainfont.render('Play [r]', True, 'Yellow')
-                instruction_rect = instruction_surf.get_rect(center=(640, 500))
-                instruction_surf2 = mainfont.render('Play Again [r]', True, 'Yellow')
-                instruction_rect2 = instruction_surf2.get_rect(center=(640, 500))
+        elif instruction1.clicked(key=pygame.K_r):
+            game_active = True
+            start_time = pygame.time.get_ticks()
 
     #actual game
     if game_active:
@@ -191,7 +228,7 @@ while True:
         bg_index = bg_index%2560
 
         if meteor_shower_on and pygame.time.get_ticks()-meteor_start < 2000:
-            screen.blit(meteor_shower_surf, meteor_shower_rect)
+            meteor_shower_text.text_blit()
         #player and obstacles
         player.draw(screen)
         player.update()
@@ -213,46 +250,32 @@ while True:
         bg_index = bg_index % 2560
 
         screen.blit(spaceship_title, spaceship_title_rect)
+        screen.blit(triangle_l_surf,triangle_l_rect)
+        screen.blit(triangle_r_surf,triangle_r_rect)
 
         game_time_index = 0
         player.sprite.gravity = 0
         player.sprite.rect.midleft = (200, 400)
         #-----------------------score--------------------------------------------
         if score == 0:
-            screen.blit(title_surf,title_rect)
+            title1.text_blit()
 
             if highscore > 0:
-                highscore_message = mainfont.render(f'Highscore: {highscore}', True, 'White')
-                highscore_rect = highscore_message.get_rect(center=(640, 650))
-                screen.blit(highscore_message,highscore_rect)
-            #pygame.draw.rect(screen, 'Red', instruction_rect)
-            #pygame.draw.rect(screen, 'Red', instruction_rect, 10)
-            screen.blit(instruction_surf,instruction_rect)
-
-            if(instruction_rect.collidepoint(pygame.mouse.get_pos())):
-                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
-            else: pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+                highscore_text = Text(f'Highscore: {highscore}',50,'White',640,650,False)
+                highscore_text.text_blit()
+            instruction1.text_blit()
         else:
-            screen.blit(title_surf2,title_rect2)
+            title2.text_blit()
             if score > highscore:
                 highscore = score
                 f = open('savedata.py','w')
                 f.write('highscore = '+str(highscore)+'\n')
                 f.close()
-            score_message = mainfont.render(f'Your score: {score}', True, 'White')
-            score_rect = score_message.get_rect(center=(640, 600))
-            highscore_message = mainfont.render(f'Highscore: {highscore}',True,'White')
-            highscore_rect = highscore_message.get_rect(center = (640,650))
-            #pygame.draw.rect(screen, 'Red', instruction_rect2)
-            #pygame.draw.rect(screen, 'Red', instruction_rect2, 10)
-            screen.blit(instruction_surf2,instruction_rect2)
-            #if(instruction_rect2.collidepoint(pygame.mouse.get_pos())):
-            #    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
-            #else: pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
-            screen.blit(score_message, score_rect)
-            screen.blit(highscore_message,highscore_rect)
-
-
+            score_text = Text(f'Your Score: {score}', 50, 'White', 640, 600, False)
+            highscore_text = Text(f'Highscore: {highscore}', 50, 'White', 640, 650, False)
+            instruction2.text_blit()
+            score_text.text_blit()
+            highscore_text.text_blit()
 
 
     pygame.display.update()
