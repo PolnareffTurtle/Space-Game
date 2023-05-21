@@ -92,6 +92,7 @@ titlefont = pygame.font.Font(None,100)
 game_active = False
 start_time = 0
 score = 0
+meteor_shower_on = False
 
 #background
 bg_index=0
@@ -116,6 +117,14 @@ instruction_rect = instruction_surf.get_rect(center = (640,500))
 obstacle_timer = pygame.USEREVENT + 1
 pygame.time.set_timer(obstacle_timer,1500)
 
+#meteor shower
+meteor_shower = pygame.USEREVENT + 2
+pygame.time.set_timer(meteor_shower,40000)
+meteor_start = 0
+meteor_shower_surf = titlefont.render('METEOR SHOWER',True,'#ff4576')
+meteor_shower_rect = meteor_shower_surf.get_rect(center=(640,300))
+
+
 #main loop
 while True:
     #event loop
@@ -124,8 +133,22 @@ while True:
             pygame.quit()
             exit()
         if game_active:
-            if event.type == obstacle_timer:
-                obstacles.add(Obstacle(choice(['comet','asteroid','asteroid'])))
+            if meteor_shower_on:
+
+                if pygame.time.get_ticks()-meteor_start < 5000:
+                    if event.type == obstacle_timer:
+                        print('hihihi')
+                        obstacles.add(Obstacle('comet'))
+                        obstacles.add(Obstacle('comet'))
+                else:
+                    meteor_shower_on = False
+            else:
+                if event.type == obstacle_timer:
+                    obstacles.add(Obstacle(choice(['comet','asteroid','asteroid','asteroid'])))
+                if event.type == meteor_shower:
+                    meteor_start = pygame.time.get_ticks()
+                    meteor_shower_on = True
+
         else:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
                 game_active = True
@@ -142,6 +165,9 @@ while True:
         bg_index += 1+int(game_time_index)
         bg_index = bg_index%2560
 
+        if meteor_shower_on and pygame.time.get_ticks()-meteor_start < 2000:
+            screen.blit(meteor_shower_surf, meteor_shower_rect)
+        #player and obstacles
         player.draw(screen)
         player.update()
 
@@ -154,14 +180,19 @@ while True:
 
     #----------------------------home screen-------------------------------------
     else:
-        screen.fill('#8662a1')
+        #background
+        if bg_index <=1280: screen.blit(bg1,(-bg_index, 0))
+        else: screen.blit(bg1,(2560-bg_index,0))
+        screen.blit(bg2, (1280 - bg_index, 0))
+        bg_index += 1
+        bg_index = bg_index%2560
+
         screen.blit(spaceship_title,spaceship_title_rect)
         screen.blit(title_surf,title_rect)
 
         game_time_index=0
         player.sprite.gravity = 0
         player.sprite.rect.midleft = (200, 400)
-        bg_index = 0
 
         #-----------------------score--------------------------------------------
         if score == 0:
