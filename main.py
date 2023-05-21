@@ -6,7 +6,7 @@ import csv
 
 pygame.init()
 screen = pygame.display.set_mode((1280,720))
-skins_list = [pygame.transform.rotozoom(pygame.image.load(f'graphics/spaceship/spaceship{i}.png').convert_alpha(),0,0.5) for i in range(1,6)]
+skins_list = [pygame.transform.rotozoom(pygame.image.load(f'graphics/spaceship/spaceship{i}.png').convert_alpha(),0,0.5) for i in range(1,5)]
 game_time_index = 0
 
 class Player(pygame.sprite.Sprite):
@@ -116,8 +116,44 @@ class Text():
             self.text_hover()
         screen.blit(self.image,self.rect)
 
-class Button(pygame.sprite.Sprite):
-    pass
+
+class Button():
+    def __init__(self,type):
+        self.type = type
+        if type == 'left':
+            self.image = pygame.image.load('graphics/triangle_l.png').convert_alpha()
+            self.rect = self.image.get_rect(midright = (450,300))
+        else:
+            self.image = pygame.image.load('graphics/triangle_r.png').convert_alpha()
+            self.rect = self.image.get_rect(midleft = (850,300))
+        self.ref = self.image
+
+    def button_hover(self):
+        if self.rect.collidepoint(pygame.mouse.get_pos()):
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+            self.image = pygame.transform.rotozoom(self.ref,0,1.5)
+            if self.type =='left':
+                self.rect = self.image.get_rect(midright=(450,300))
+            else:
+                self.rect = self.image.get_rect(midleft=(850,300))
+            return True
+        else:
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+            self.image = self.ref
+            if self.type == 'left':
+                self.rect = self.image.get_rect(midright=(450,300))
+            else:
+                self.rect = self.image.get_rect(midleft=(850,300))
+            return False
+
+    def clicked(self):
+        if pygame.mouse.get_pressed()[0] and self.rect.collidepoint(pygame.mouse.get_pos()):
+            pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+            return True
+
+    def button_blit(self):
+        self.button_hover()
+        screen.blit(self.image,self.rect)
 
 def display_score():
     current_time = int(((pygame.time.get_ticks() - start_time) // 100)*(1+game_time_index))
@@ -140,8 +176,9 @@ biggerfont = pygame.font.Font(None,75)
 game_active = False
 start_time = 0
 score = 0
-skin_index = 0
+skin_index = 2
 meteor_shower_on = False
+newgame=True
 
 #background
 bg_index=0
@@ -156,8 +193,7 @@ obstacles = pygame.sprite.Group()
 
 #-----------------------------intro screen---------------------------------
 
-spaceship_title = pygame.transform.rotozoom(skins_list[skin_index],30,2)
-spaceship_title_rect = spaceship_title.get_rect(center = (640,300))
+
 
 title1 = Text('Spaceship Game',100,'White',640,100,False)
 title2 = Text('You Crashed!',100,'White',640,100,False)
@@ -175,10 +211,8 @@ meteor_start = 0
 meteor_shower_text = Text('METEOR SHOWER',100,'#ff4576',640,300,False)
 
 #character select
-triangle_l_surf = pygame.image.load('graphics/triangle_l.png').convert_alpha()
-triangle_l_rect = triangle_l_surf.get_rect(midright = (500,300))
-triangle_r_surf = pygame.image.load('graphics/triangle_r.png').convert_alpha()
-triangle_r_rect = triangle_r_surf.get_rect(midleft = (780,300))
+triangle_l = Button('left')
+triangle_r = Button('right')
 
 #main loop
 while True:
@@ -205,12 +239,25 @@ while True:
                 if event.type == meteor_shower:
                     meteor_start = pygame.time.get_ticks()
                     meteor_shower_on = True
-        elif instruction1.clicked(key=pygame.K_r):
+
+        elif instruction1.clicked(key=pygame.K_r) or instruction2.clicked(key=pygame.K_r):
+            newgame=True
             game_active = True
             start_time = pygame.time.get_ticks()
+        else:
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if triangle_l.button_hover():
+                    skin_index += -1
+                    skin_index = skin_index % 4
+                if triangle_r.button_hover():
+                    skin_index += 1
+                    skin_index = skin_index % 4
 
     #actual game
     if game_active:
+        if newgame:
+            player.add(Player(skin_index))
+            newgame=False
         game_time_index+=0.001
         #----------------------background---------------------------
         if bg_index <=1280: screen.blit(bg1,(-bg_index, 0))
@@ -241,9 +288,12 @@ while True:
         bg_index += 1
         bg_index = bg_index % 2560
 
+        spaceship_title = pygame.transform.rotozoom(skins_list[skin_index], 30, 2)
+        spaceship_title_rect = spaceship_title.get_rect(center=(640, 300))
+
         screen.blit(spaceship_title, spaceship_title_rect)
-        screen.blit(triangle_l_surf,triangle_l_rect)
-        screen.blit(triangle_r_surf,triangle_r_rect)
+        triangle_l.button_blit()
+        triangle_r.button_blit()
 
         game_time_index = 0
         player.sprite.gravity = 0
