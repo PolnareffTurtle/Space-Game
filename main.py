@@ -6,7 +6,7 @@ import csv
 
 pygame.init()
 screen = pygame.display.set_mode((1280,720))
-skins_list = [pygame.transform.rotozoom(pygame.image.load(f'graphics/spaceship/spaceship{i}.png').convert_alpha(),0,0.5) for i in range(1,5)]
+skins_list = [pygame.transform.rotozoom(pygame.image.load(f'graphics/spaceship/spaceship{i}.png').convert_alpha(),0,0.5) for i in range(1,6)]
 game_time_index = 0
 
 class Player(pygame.sprite.Sprite):
