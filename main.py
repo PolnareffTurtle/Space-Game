@@ -1,6 +1,7 @@
 import pygame
 from sys import exit
 from random import randint, choice
+from savedata import *
 
 pygame.init()
 screen = pygame.display.set_mode((1280,720))
@@ -51,7 +52,7 @@ class Obstacle(pygame.sprite.Sprite):
 
 def display_score():
     current_time = (pygame.time.get_ticks() - start_time) // 100
-    score_surf = mainfont.render(f'Score: {current_time}', False, 'White')
+    score_surf = mainfont.render(f'Score: {current_time}', True, 'White')
     score_rect = score_surf.get_rect(topright = (1230,50))
     screen.blit(score_surf, score_rect)
     return current_time
@@ -62,6 +63,7 @@ def collisions():
         return False
     return True
 
+#-------------------SAVE DATA----------------------
 
 pygame.display.set_caption('Space Game')
 clock = pygame.time.Clock()
@@ -87,7 +89,6 @@ title_surf = titlefont.render('Spaceship Game',True,'Gray')
 title_rect = title_surf.get_rect(center = (640,100))
 instruction_surf = mainfont.render('Press Space to start',True,'Gray')
 instruction_rect = instruction_surf.get_rect(center = (640,600))
-score_surf = mainfont.render('High Score:',False,(64,64,64))
 
 #-------------------------------Timer---------------------------------------
 obstacle_timer = pygame.USEREVENT + 1
@@ -132,11 +133,26 @@ while True:
         player.sprite.rect.midleft = (200, 400)
 
         #-----------------------score--------------------------------------------
-        score_message = mainfont.render(f'Your score: {score}', False, 'Gray')
-        score_message_rect = score_message.get_rect(center=(640, 600))
+        if score == 0:
+            if highscore > 0:
+                highscore_message = mainfont.render(f'Highscore: {highscore}', True, 'Gray')
+                highscore_rect = highscore_message.get_rect(center=(640, 650))
+                screen.blit(highscore_message,highscore_rect)
+            screen.blit(instruction_surf,instruction_rect)
+        else:
+            if score > highscore:
+                highscore = score
+                f = open('savedata.py','w')
+                f.write('highscore = '+str(highscore))
+                f.close()
+            score_message = mainfont.render(f'Your score: {score}', True, 'Gray')
+            score_rect = score_message.get_rect(center=(640, 600))
+            highscore_message = mainfont.render(f'Highscore: {highscore}',True,'Gray')
+            highscore_rect = highscore_message.get_rect(center = (640,650))
+            screen.blit(score_message, score_rect)
+            screen.blit(highscore_message,highscore_rect)
 
-        if score == 0: screen.blit(instruction_surf,instruction_rect)
-        else: screen.blit(score_message, score_message_rect)
+
 
 
     pygame.display.update()
