@@ -109,8 +109,10 @@ spaceship_title = pygame.transform.rotozoom(player.sprite.image,30,2)
 spaceship_title_rect = spaceship_title.get_rect(center = (640,300))
 title_surf = titlefont.render('Spaceship Game',True,'Gray')
 title_rect = title_surf.get_rect(center = (640,100))
-instruction_surf = mainfont.render('Press R to start',True,'Gray')
+instruction_surf = mainfont.render('Play',True,'Gray')
 instruction_rect = instruction_surf.get_rect(center = (640,500))
+instruction_surf2 = mainfont.render('Play Again', True, 'Gray')
+instruction_rect2 = instruction_surf2.get_rect(center = (640, 500))
 
 #-------------------------------Timer---------------------------------------
 obstacle_timer = pygame.USEREVENT + 1
@@ -126,8 +128,12 @@ while True:
         if game_active:
             if event.type == obstacle_timer:
                 obstacles.add(Obstacle(choice(['comet','asteroid','asteroid'])))
+        elif score > 0:
+            if event.type == pygame.MOUSEBUTTONDOWN and instruction_rect2.collidepoint(pygame.mouse.get_pos()):
+                game_active = True
+                start_time = pygame.time.get_ticks()
         else:
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_r:
+            if event.type == pygame.MOUSEBUTTONDOWN and instruction_rect.collidepoint(pygame.mouse.get_pos()):
                 game_active = True
                 start_time = pygame.time.get_ticks()
 
@@ -169,6 +175,8 @@ while True:
                 highscore_message = mainfont.render(f'Highscore: {highscore}', True, 'Gray')
                 highscore_rect = highscore_message.get_rect(center=(640, 650))
                 screen.blit(highscore_message,highscore_rect)
+            pygame.draw.rect(screen, 'Red', instruction_rect)
+            pygame.draw.rect(screen, 'Red', instruction_rect, 10)
             screen.blit(instruction_surf,instruction_rect)
         else:
             if score > highscore:
@@ -180,7 +188,9 @@ while True:
             score_rect = score_message.get_rect(center=(640, 600))
             highscore_message = mainfont.render(f'Highscore: {highscore}',True,'Gray')
             highscore_rect = highscore_message.get_rect(center = (640,650))
-            screen.blit(instruction_surf,instruction_rect)
+            pygame.draw.rect(screen, 'Red', instruction_rect2)
+            pygame.draw.rect(screen, 'Red', instruction_rect2, 10)
+            screen.blit(instruction_surf2,instruction_rect2)
             screen.blit(score_message, score_rect)
             screen.blit(highscore_message,highscore_rect)
 
