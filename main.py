@@ -90,6 +90,7 @@ pygame.display.set_caption('Space Game')
 clock = pygame.time.Clock()
 mainfont = pygame.font.Font(None, 50)
 titlefont = pygame.font.Font(None,100)
+biggerfont = pygame.font.Font(None,75)
 game_active = False
 start_time = 0
 score = 0
@@ -113,9 +114,9 @@ title_surf = titlefont.render('Spaceship Game',True,'White')
 title_rect = title_surf.get_rect(center = (640,100))
 title_surf2 = titlefont.render('You Crashed!',True,'White')
 title_rect2 = title_surf2.get_rect(center = (640,100))
-instruction_surf = mainfont.render('Play [r]',True,'White')
+instruction_surf = mainfont.render('Play [r]',True,'Yellow')
 instruction_rect = instruction_surf.get_rect(center = (640,500))
-instruction_surf2 = mainfont.render('Play Again [r]', True, 'White')
+instruction_surf2 = mainfont.render('Play Again [r]', True, 'Yellow')
 instruction_rect2 = instruction_surf2.get_rect(center = (640, 500))
 
 #-------------------------------Timer---------------------------------------
@@ -152,17 +153,26 @@ while True:
                 if event.type == meteor_shower:
                     meteor_start = pygame.time.get_ticks()
                     meteor_shower_on = True
-        elif score > 0:
-            if event.type == pygame.MOUSEBUTTONDOWN and instruction_rect2.collidepoint(pygame.mouse.get_pos()) or event.type == pygame.KEYDOWN and event.key == pygame.K_r:
-                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
-                game_active = True
-                start_time = pygame.time.get_ticks()
         else:
-            if event.type == pygame.MOUSEBUTTONDOWN and instruction_rect.collidepoint(pygame.mouse.get_pos()) or event.type == pygame.KEYDOWN and event.key == pygame.K_r:
+            if instruction_rect2.collidepoint(pygame.mouse.get_pos()) or instruction_rect.collidepoint(pygame.mouse.get_pos()):
+                instruction_surf2 = biggerfont.render('Play Again [r]', True, 'Yellow')
+                instruction_rect2 = instruction_surf2.get_rect(center = (640,500))
+                instruction_surf = biggerfont.render('Play [r]', True, 'Yellow')
+                instruction_rect = instruction_surf.get_rect(center=(640, 500))
+                if event.type == pygame.MOUSEBUTTONDOWN:# or event.type == pygame.KEYDOWN and event.key == pygame.K_r
+                    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+                    game_active = True
+                    start_time = pygame.time.get_ticks()
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_r:
                 pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
                 game_active = True
                 start_time = pygame.time.get_ticks()
-
+            else:
+                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+                instruction_surf = mainfont.render('Play [r]', True, 'Yellow')
+                instruction_rect = instruction_surf.get_rect(center=(640, 500))
+                instruction_surf2 = mainfont.render('Play Again [r]', True, 'Yellow')
+                instruction_rect2 = instruction_surf2.get_rect(center=(640, 500))
 
     #actual game
     if game_active:
@@ -209,8 +219,8 @@ while True:
                 highscore_message = mainfont.render(f'Highscore: {highscore}', True, 'White')
                 highscore_rect = highscore_message.get_rect(center=(640, 650))
                 screen.blit(highscore_message,highscore_rect)
-            pygame.draw.rect(screen, 'Red', instruction_rect)
-            pygame.draw.rect(screen, 'Red', instruction_rect, 10)
+            #pygame.draw.rect(screen, 'Red', instruction_rect)
+            #pygame.draw.rect(screen, 'Red', instruction_rect, 10)
             screen.blit(instruction_surf,instruction_rect)
 
             if(instruction_rect.collidepoint(pygame.mouse.get_pos())):
@@ -227,12 +237,12 @@ while True:
             score_rect = score_message.get_rect(center=(640, 600))
             highscore_message = mainfont.render(f'Highscore: {highscore}',True,'White')
             highscore_rect = highscore_message.get_rect(center = (640,650))
-            pygame.draw.rect(screen, 'Red', instruction_rect2)
-            pygame.draw.rect(screen, 'Red', instruction_rect2, 10)
+            #pygame.draw.rect(screen, 'Red', instruction_rect2)
+            #pygame.draw.rect(screen, 'Red', instruction_rect2, 10)
             screen.blit(instruction_surf2,instruction_rect2)
-            if(instruction_rect2.collidepoint(pygame.mouse.get_pos())):
-                pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
-            else: pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
+            #if(instruction_rect2.collidepoint(pygame.mouse.get_pos())):
+            #    pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
+            #else: pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
             screen.blit(score_message, score_rect)
             screen.blit(highscore_message,highscore_rect)
 
