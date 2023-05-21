@@ -2,6 +2,7 @@ import pygame
 from sys import exit
 from random import randint, choice, uniform
 from savedata import *
+import csv
 
 pygame.init()
 screen = pygame.display.set_mode((1280,720))
@@ -52,16 +53,27 @@ class Obstacle(pygame.sprite.Sprite):
 
         elif self.type == 'comet':
             self.speed = randint(5+int(game_time_index),7+int(game_time_index))
-            self.image = pygame.image.load('graphics/comet.png').convert_alpha()
+            self.image = pygame.image.load(f'graphics/comet.png').convert_alpha()
             self.image = pygame.transform.rotozoom(self.image,30,1)
             self.rect = self.image.get_rect(bottomleft = (randint(900,2400),randint(-200,-100)))
             self.radius = 50
+
+        elif self.type == 'doge':
+            self.speed = randint(5 + int(game_time_index), 7 + int(game_time_index))
+            self.image = pygame.image.load(f'graphics/image-removebg-preview.png').convert_alpha()
+            self.image = pygame.transform.rotozoom(self.image, 30, 1)
+            self.rect = self.image.get_rect(bottomleft=(randint(900, 2400), randint(-200, -100)))
+            self.radius = 50
+
     def destroy(self):
         if self.rect.right < 0 or self.rect.top > 720 or (self.rect.bottom < 0 and self.type == 'asteroid'):
             self.kill()
 
     def update(self):
         if self.type == 'comet':
+            self.rect.x += -2*self.speed
+            self.rect.y += self.speed
+        elif self.type == 'doge':
             self.rect.x += -2*self.speed
             self.rect.y += self.speed
         elif self.type == 'asteroid':
@@ -175,13 +187,20 @@ while True:
 
                 if pygame.time.get_ticks()-meteor_start < 5000:
                     if event.type == obstacle_timer:
-                        obstacles.add(Obstacle('comet'))
-                        obstacles.add(Obstacle('comet'))
+                        if randint(1, 50) == 1:
+                            obstacles.add(Obstacle('doge'))
+                            obstacles.add(Obstacle('doge'))
+                        else:
+                            obstacles.add(Obstacle('comet'))
+                            obstacles.add(Obstacle('comet'))
                 else:
                     meteor_shower_on = False
             else:
                 if event.type == obstacle_timer:
-                    obstacles.add(Obstacle(choice(['comet','asteroid','asteroid','asteroid'])))
+                    if randint(1, 50) == 1:
+                        obstacles.add(Obstacle(choice(['doge'])))
+                    else:
+                        obstacles.add(Obstacle(choice(['comet', 'asteroid', 'asteroid', 'asteroid'])))
                 if event.type == meteor_shower:
                     meteor_start = pygame.time.get_ticks()
                     meteor_shower_on = True
