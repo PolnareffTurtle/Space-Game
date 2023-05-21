@@ -60,7 +60,7 @@ class Obstacle(pygame.sprite.Sprite):
 
         elif self.type == 'doge':
             self.speed = randint(5 + int(game_time_index), 7 + int(game_time_index))
-            self.image = pygame.image.load(f'graphics/image-removebg-preview.png').convert_alpha()
+            self.image = pygame.image.load(f'graphics/doge.png').convert_alpha()
             self.image = pygame.transform.rotozoom(self.image, 30, 1)
             self.rect = self.image.get_rect(bottomleft=(randint(900, 2400), randint(-200, -100)))
             self.radius = 50
