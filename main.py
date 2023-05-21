@@ -4,6 +4,10 @@ from random import randint, choice, uniform
 from savedata import *
 
 pygame.init()
+bg_music = pygame.mixer.Sound('audio/space.wav')
+bg_music.set_volume(0.5)
+bg_music.play(-1)
+
 screen = pygame.display.set_mode((1280,720))
 skins_list = [pygame.transform.rotozoom(pygame.image.load(f'graphics/spaceship/spaceship{i}.png').convert_alpha(),0,0.5) for i in range(1,5)]
 game_time_index = 0
