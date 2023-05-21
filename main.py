@@ -5,13 +5,19 @@ from savedata import *
 
 pygame.init()
 screen = pygame.display.set_mode((1280,720))
-spaceship = pygame.transform.rotozoom(pygame.image.load('graphics/spaceship.png').convert_alpha(),0,0.5)
+
+red = 'graphics/red_spaceship.png'
+green = 'graphics/green_spaceship.png'
+yellow = 'graphics/yellow_spaceship.png'
+blue = 'graphics/blue_spaceship.png'
+skins_list = [red, green, yellow, blue]
 game_time_index = 0
 
 class Player(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
-        self.image = spaceship
+        self.image = pygame.transform.rotozoom(pygame.image.load(green).convert_alpha(),0,0.5)
+        self.ref =self.image
         self.rect = self.image.get_rect(midleft = (200,400))
         self.gravity = 0
         self.radius = 0.7 * self.rect.width/2
@@ -31,7 +37,7 @@ class Player(pygame.sprite.Sprite):
         #max and min for position
         if self.rect.top < 20: self.rect.top,self.gravity = 20,0
         if self.rect.bottom > 700: self.rect.bottom,self.gravity = 700,0
-        self.image = pygame.transform.rotozoom(spaceship,-self.gravity,1)
+        self.image = pygame.transform.rotozoom(self.ref,-self.gravity,1)
 
     def update(self):
         self.player_input()
