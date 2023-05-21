@@ -167,7 +167,7 @@ def collisions():
     return True
 
 
-pygame.display.set_caption('Space Game')
+pygame.display.set_caption('Asteroid Attack')
 clock = pygame.time.Clock()
 mainfont = pygame.font.Font(None, 50)
 titlefont = pygame.font.Font(None,100)
@@ -194,7 +194,7 @@ obstacles = pygame.sprite.Group()
 
 
 
-title1 = Text('Spaceship Game',100,'White',640,100,False)
+title1 = Text('Asteroid Attack',100,'White',640,100,False)
 title2 = Text('You Crashed!',100,'White',640,100,False)
 instruction1 = Text('Play [r]',50,'Yellow',640,500,True,pygame.K_r)
 instruction2 = Text('Play Again [r]',50,'Yellow',640,500,True,pygame.K_r)
