@@ -90,18 +90,21 @@ class Text(pygame.sprite.Sprite):
         self.text = text
         self.color = color
         self.hover = hover
+        self.center = (xpos,ypos)
         self.font = pygame.font.Font(None,size)
         self.font2 = pygame.font.Font(None,int(size*1.5))
         self.image = self.font.render(text,True,color)
-        self.rect = self.image.get_rect(center=(xpos,ypos))
+        self.rect = self.image.get_rect(center=self.center)
 
     def text_hover(self):
         if self.rect.collidepoint(pygame.mouse.get_pos()):
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_HAND)
             self.image = self.font2.render(self.text,True,self.color)
+            self.rect = self.image.get_rect(center=self.center)
         else:
             pygame.mouse.set_cursor(pygame.SYSTEM_CURSOR_ARROW)
             self.image = self.font.render(self.text,True,self.color)
+            self.rect = self.image.get_rect(center=self.center)
 
     def clicked(self,key=None):
         mousedown = pygame.mouse.get_pressed()[0]
@@ -262,7 +265,7 @@ while True:
                 f = open('savedata.py','w')
                 f.write('highscore = '+str(highscore)+'\n')
                 f.close()
-            score_text = Text(f'Your Score: {highscore}', 50, 'White', 640, 600, False)
+            score_text = Text(f'Your Score: {score}', 50, 'White', 640, 600, False)
             highscore_text = Text(f'Highscore: {highscore}', 50, 'White', 640, 650, False)
             instruction2.text_blit()
             score_text.text_blit()
