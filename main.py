@@ -170,7 +170,7 @@ pygame.time.set_timer(obstacle_timer,1500)
 meteor_shower = pygame.USEREVENT + 2
 pygame.time.set_timer(meteor_shower,40000)
 meteor_start = 0
-mteor_shower_text = Text('METEOR SHOWER',100,'#ff4576',640,300,False)
+meteor_shower_text = Text('METEOR SHOWER',100,'#ff4576',640,300,False)
 
 #character select
 triangle_l_surf = pygame.image.load('graphics/triangle_l.png').convert_alpha()
