@@ -6,18 +6,13 @@ import csv
 
 pygame.init()
 screen = pygame.display.set_mode((1280,720))
-
-red = 'graphics/red_spaceship.png'
-green = 'graphics/green_spaceship.png'
-yellow = 'graphics/yellow_spaceship.png'
-blue = 'graphics/blue_spaceship.png'
-skins_list = [red, green, yellow, blue]
+skins_list = [pygame.transform.rotozoom(pygame.image.load(f'graphics/spaceship/spaceship{i}.png').convert_alpha(),0,0.5) for i in range(1,5)]
 game_time_index = 0
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self):
+    def __init__(self,index):
         super().__init__()
-        self.image = pygame.transform.rotozoom(pygame.image.load(green).convert_alpha(),0,0.5)
+        self.image = skins_list[index]
         self.ref =self.image
         self.rect = self.image.get_rect(midleft = (200,400))
         self.gravity = 0
@@ -76,10 +71,7 @@ class Obstacle(pygame.sprite.Sprite):
             self.kill()
 
     def update(self):
-        if self.type == 'comet':
-            self.rect.x += -2*self.speed
-            self.rect.y += self.speed
-        elif self.type == 'doge':
+        if self.type in ['comet','doge']:
             self.rect.x += -2*self.speed
             self.rect.y += self.speed
         elif self.type == 'asteroid':
@@ -90,7 +82,7 @@ class Obstacle(pygame.sprite.Sprite):
             #self.image = self.frames[int(self.index)%180]
         self.destroy()
 
-class Text(pygame.sprite.Sprite):
+class Text():
     def __init__(self,text,size,color,xpos,ypos,hover,key=None):
         self.key = key
         self.text = text
@@ -124,6 +116,9 @@ class Text(pygame.sprite.Sprite):
             self.text_hover()
         screen.blit(self.image,self.rect)
 
+class Button(pygame.sprite.Sprite):
+    pass
+
 def display_score():
     current_time = int(((pygame.time.get_ticks() - start_time) // 100)*(1+game_time_index))
     score_text = Text(f'Score: {current_time}',50,'White',1100,80,False)
@@ -145,6 +140,7 @@ biggerfont = pygame.font.Font(None,75)
 game_active = False
 start_time = 0
 score = 0
+player_index = 0
 meteor_shower_on = False
 
 #background
@@ -154,7 +150,7 @@ bg2 = pygame.image.load('graphics/background2.png').convert()
 
 #--------------------------GROUPS-------------------------------------
 player = pygame.sprite.GroupSingle()
-player.add(Player())
+player.add(Player(player_index))
 
 obstacles = pygame.sprite.Group()
 
@@ -196,18 +192,14 @@ while True:
 
                 if pygame.time.get_ticks()-meteor_start < 5000:
                     if event.type == obstacle_timer:
-                        if randint(1, 50) == 1:
-                            obstacles.add(Obstacle('doge'))
-                            obstacles.add(Obstacle('doge'))
-                        else:
-                            obstacles.add(Obstacle('comet'))
-                            obstacles.add(Obstacle('comet'))
+                        obstacles.add(Obstacle('comet'))
+                        obstacles.add(Obstacle('comet'))
                 else:
                     meteor_shower_on = False
             else:
                 if event.type == obstacle_timer:
-                    if randint(1, 50) == 1:
-                        obstacles.add(Obstacle(choice(['doge'])))
+                    if randint(1, 100) == 1:
+                        obstacles.add(Obstacle('doge'))
                     else:
                         obstacles.add(Obstacle(choice(['comet', 'asteroid', 'asteroid', 'asteroid'])))
                 if event.type == meteor_shower:
