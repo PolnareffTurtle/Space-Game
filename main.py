@@ -140,7 +140,7 @@ biggerfont = pygame.font.Font(None,75)
 game_active = False
 start_time = 0
 score = 0
-player_index = 0
+skin_index = 0
 meteor_shower_on = False
 
 #background
@@ -150,13 +150,13 @@ bg2 = pygame.image.load('graphics/background2.png').convert()
 
 #--------------------------GROUPS-------------------------------------
 player = pygame.sprite.GroupSingle()
-player.add(Player(player_index))
+player.add(Player(skin_index))
 
 obstacles = pygame.sprite.Group()
 
 #-----------------------------intro screen---------------------------------
 
-spaceship_title = pygame.transform.rotozoom(player.sprite.image,30,2)
+spaceship_title = pygame.transform.rotozoom(skins_list[skin_index],30,2)
 spaceship_title_rect = spaceship_title.get_rect(center = (640,300))
 
 title1 = Text('Spaceship Game',100,'White',640,100,False)
