@@ -1,1 +1,1 @@
-highscore = 12606
+highscore = 0
